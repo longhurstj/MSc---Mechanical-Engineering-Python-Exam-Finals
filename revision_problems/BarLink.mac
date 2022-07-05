@@ -1,0 +1,18 @@
+/SOLU
+ ANTYPE,STATIC,NEW
+! Describes the initial condtion
+*DIM,U_0,TABLE,25,1,1,X, , 
+*VFILL,u_0(0,0),RAMP,0,2/25,
+*VOPER,U_0(0,1),2,SUB,U_0(0,0),
+*VFACT, 4*150/2**2
+*VOPER,U_0(0,1),U_0(0,1),MULT,U_0(0,0),
+*VPLOT,U_0(0,0),U_0(0,1)
+
+ 
+
+
+!Apply the BCs
+DL, 1, ,TEMP, 0
+DL, 2, ,TEMP, 0
+DL, 3, ,TEMP, %U_0%
+DL, 4, ,TEMP, 0

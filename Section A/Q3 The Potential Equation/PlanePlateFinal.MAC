@@ -1,0 +1,62 @@
+! PlanePlateMulti, HEIGHT, LENGTH
+PI=ACOS(-1.0)
+H=Arg1
+L=Arg2
+
+kxx=200
+c_v=500
+rho=2700
+
+! Preprocessing
+/PREP7
+ET, 1, 55, , , ,			! Thermal solid element
+
+! Define Material Properties
+MP, KXX, 1, kxx,			! Thermal Conductivity
+MP, C, 1, c_v,				! Specific Heat Capacity
+MP, DENS, 1, rho			! Density
+
+! Create Geometry
+RECTING, 0, L, 0, H
+LESIZE, 1, , , 25*L,
+LESIZE, 2, , , 25*H,
+LESIZE, 3, , , 25*L,
+LESIZE, 4, , , 25*H,
+
+! Create Mesh
+AMESH, ALL, ALL
+
+! Solution
+/SOLU
+
+! Initial Temps Line 1
+*DIM,IntTempL1,TABLE,61,1,1,X, , 				! Dimension a table (IntTemps)
+*VFILL,IntTempL1(0,0),RAMP,0,L/61,				! Fill table with scale 0 - L
+*VOPER,IntTempL1(0,1),L,SUB,IntTempL1(0,0),			! Create quadratic scale
+*VFUN,IntTempL1(0,1),PWR,IntTempL1(0,1),3, , ,
+*VFACT, 100
+*VOPER,IntTempL1(0,1),IntTempL1(0,1),MULT,IntTempL1(0,0),
+!*VPLOT,IntTempL1(0,0),IntTempL1(0,1)				! Vplot to test
+
+! Initial Temps Line 3
+*DIM,IntTempL3,TABLE,61,1,1,Y, , 				! Dimension a table (IntTemps)
+*VFILL,IntTempL3(0,0),RAMP,0,H/61,				! Fill table with scale 0 - L
+*VOPER,IntTempL3(0,1),H,SUB,IntTempL3(0,0),			! Create quadratic scale
+*VFACT, 4*100/H**2
+*VOPER,IntTempL3(0,1),IntTempL3(0,1),MULT,IntTempL3(0,0),
+!*VPLOT,IntTempL3(0,0),IntTempL3(0,1)				! Vplot to test
+
+!Select and Apply Boundary Conditions
+DL, 1, , TEMP, 0,			! Apply table to line
+DL, 2, , TEMP, 0,			! 0 deg on one end
+DL, 3, , TEMP, 0,			! Apply table to line
+DL, 4, , TEMP, %INTTEMPL3%,	 	! 0 deg applied to other end
+
+SOLVE
+
+! Post Processing
+/POST1
+PLNSOL, TEMP
+
+! Special Post Processing
+!/POST26
